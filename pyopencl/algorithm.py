@@ -531,6 +531,8 @@ class RadixSort(object):
         args = list(args)
 
         base_bit = 0
+
+        time = 0
         while base_bit < key_bits:
             sorted_args = [
                     cl.array.empty(queue, n, arg_descr.dtype, allocator=allocator)
@@ -543,6 +545,9 @@ class RadixSort(object):
                     **dict(queue=queue, wait_for=wait_for))
             wait_for = [last_evt]
 
+            last_evt.wait()
+            time += (last_evt.profile.end - last_evt.profile.start) * 1e-9
+
             # substitute sorted
             for i, arg_descr in enumerate(self.arguments):
                 if arg_descr.name in self.sort_arg_names:
@@ -552,7 +557,7 @@ class RadixSort(object):
 
         return [arg_val
                 for arg_descr, arg_val in zip(self.arguments, args)
-                if arg_descr.name in self.sort_arg_names], last_evt
+                if arg_descr.name in self.sort_arg_names], last_evt, time
 
         # }}}
 
